@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HexaVault</title>
+    <!-- Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f111a">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- CDNs for special features removed per user request -->
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-header">
+            <h1>HexaVault</h1>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content">
+            <!-- 1. DASHBOARD EKRANI -->
+            <section id="view-dashboard" class="view active">
+                <div class="glass-panel summary-cards">
+                    <div class="card">
+                        <h3>Toplam Parça</h3>
+                        <p id="total-items">0</p>
+                    </div>
+                    <div class="card warning">
+                        <h3>Azalan Sarf</h3>
+                        <p id="low-stock-items">0</p>
+                    </div>
+                    <div class="card success">
+                        <h3>Envanter Değeri</h3>
+                        <p id="total-value">0 ₺</p>
+                    </div>
+                </div>
+                <div class="glass-panel">
+                    <h3>Son Eklenenler</h3>
+                    <ul id="recent-items-list" class="simple-list">
+                        <li class="text-muted">Henüz malzeme eklenmedi.</li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- 2. ENVANTER EKRANI -->
+            <section id="view-inventory" class="view">
+                <div class="search-bar" style="margin-bottom:0.5rem;">
+                    <input type="text" id="search-input" placeholder="Malzeme adı ara...">
+                    <button id="add-new-btn" class="btn-primary">+</button>
+                </div>
+                
+                <div id="category-filters" class="category-filters">
+                    <!-- Dinamik çipler -->
+                </div>
+                
+                <div id="inventory-list" class="inventory-list">
+                    <!-- JavaScript ile doldurulacak -->
+                </div>
+            </section>
+
+            <!-- 3. SİPARİŞ LİSTESİ EKRANI -->
+            <section id="view-orders" class="view">
+                <div class="glass-panel">
+                    <h3>Alışveriş / Sipariş Listesi</h3>
+                    <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">Unutmamak için almanız gereken malzemeleri ve özelliklerini buraya not edebilirsiniz.</p>
+                    <form id="add-order-form">
+                        <input type="hidden" id="order-id">
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 2;">
+                                <input type="text" id="order-name" placeholder="Malzeme Adı (Örn: 10k Direnç)" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <input type="number" id="order-qty" placeholder="Adet" required min="1" value="1">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                            <input type="text" id="order-specs" placeholder="Özellikler (Örn: 0805 Kılıf, %1 Tolerans, Mouser Linki...)">
+                        </div>
+                        <button type="submit" id="submit-order-btn" class="btn-primary" style="width: 100%;">Siparişe Ekle</button>
+                    </form>
+                </div>
+                
+                <div id="order-list" class="inventory-list">
+                    <!-- Orders will be injected here -->
+                </div>
+            </section>
+
+            <!-- 4. AYARLAR / YEDEKLEME EKRANI -->
+            <section id="view-settings" class="view">
+                <div class="glass-panel">
+                    <h3>Ayarlar ve Yedekleme</h3>
+                    <p class="text-muted" style="font-size:0.85rem; margin-bottom:1rem;">Verileriniz tarayıcıda saklanır. Kaybetmemek için düzenli yedek alın.</p>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <h4 style="margin-bottom:0.5rem;">Dışa Aktar (Yedek İndir)</h4>
+                        <button id="export-btn" class="btn-primary" style="width:100%;">Tüm Veriyi İndir (.json)</button>
+                    </div>
+
+                    <div>
+                        <h4 style="margin-bottom:0.5rem;">İçe Aktar (Yedek Yükle)</h4>
+                        <input type="file" id="import-file" accept=".json" style="margin-bottom:0.5rem;">
+                        <button id="import-btn" class="btn-danger" style="width:100%;">Yedeği Geri Yükle</button>
+                        <p style="font-size:0.75rem; color:var(--danger); margin-top:0.5rem;">Dikkat: Mevcut verilerin üzerine yazar!</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- MODAL (Yeni Malzeme Ekleme) -->
+            <div id="add-modal" class="modal-overlay">
+                <div class="modal-content glass-panel">
+                    <div class="modal-header">
+                        <h3 id="modal-title">Yeni Malzeme Ekle</h3>
+                        <button id="close-modal-btn" class="btn-icon">✖</button>
+                    </div>
+                    <form id="add-item-form">
+                        <input type="hidden" id="item-id">
+                        <div class="form-group">
+                            <label>İsim (Örn: 10k Direnç)</label>
+                            <input type="text" id="item-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kategori</label>
+                            <select id="item-category" required>
+                                <option value="Pasif Bileşen">Pasif Bileşen</option>
+                                <option value="Mikrodenetleyici">Mikrodenetleyici</option>
+                                <option value="Sensör">Sensör</option>
+                                <option value="Motor Sürücü">Motor Sürücü</option>
+                                <option value="Sarf Malzemesi">Sarf Malzemesi</option>
+                                <option value="Diğer">Diğer</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Miktar</label>
+                                <input type="number" id="item-quantity" value="1" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Kılıf (Footprint)</label>
+                                <input type="text" id="item-footprint" placeholder="Örn: 0805">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Konum (Örn: Çekmeceli Kutu 3)</label>
+                            <input type="text" id="item-location" placeholder="Nerede bulunuyor?">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Sağlık Durumu</label>
+                                <select id="item-health">
+                                    <option value="Sağlam">Sağlam</option>
+                                    <option value="Şüpheli">Şüpheli (Test Gerekli)</option>
+                                    <option value="Bozuk">Bozuk (Donör)</option>
+                                    <option value="Projede">Projede Kullanımda</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Birim Fiyat (₺)</label>
+                                <input type="number" id="item-price" placeholder="Örn: 5.50" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notlar / Test Sonucu</label>
+                            <textarea id="item-notes" placeholder="Örn: 5V bacağı ısınıyor..." rows="2" style="resize: vertical;"></textarea>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="item-is-consumable">
+                            <label for="item-is-consumable">Sarf Malzemesi mi?</label>
+                        </div>
+                        <div class="form-row" style="margin-top: 1rem;">
+                            <button type="submit" class="btn-primary" style="flex: 2;">Kaydet</button>
+                            <button type="button" id="delete-item-btn" class="btn-danger" style="flex: 1; display: none;">Sil</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav glass-nav" id="bottom-nav">
+            <button class="nav-btn active" data-target="view-dashboard">
+                <span class="icon">📊</span>
+                <span>Özet</span>
+            </button>
+            <button class="nav-btn" data-target="view-inventory">
+                <span class="icon">📦</span>
+                <span>Stok</span>
+            </button>
+            <button class="nav-btn" data-target="view-orders">
+                <span class="icon">🛒</span>
+                <span>Sipariş</span>
+            </button>
+            <button class="nav-btn" data-target="view-settings">
+                <span class="icon">⚙️</span>
+                <span>Ayarlar</span>
+            </button>
+
+        </nav>
+    </div>
+    
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW hatası:', err));
+            });
+        }
+    </script>
+</body>
+</html>
